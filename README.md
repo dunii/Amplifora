@@ -98,6 +98,27 @@ app.use(function(req, res, next) {
   next();
 });
 
+const chargeHandler = async (req, res, next) => {
+  const { token } = req.body;
+  const { currency, amount, description } = req.body.charge;
+
+  try {
+    const charge = await stripe.charges.create({
+      source: token.id,
+      amount,
+      currency,
+      description
+    });
+    if (charge.status === "succeeded") {
+      req.charge = charge;
+      req.description = description;
+      req.email = req.body.email;
+      next();
+    }
+  } catch (err) {
+    res.status(500).json({ error: err });
+  }
+};
 
 const convertCentsToDollars = price => (price / 100).toFixed(2);
 
